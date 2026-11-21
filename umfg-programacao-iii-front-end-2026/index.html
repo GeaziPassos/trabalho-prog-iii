@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus lembretes</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <header class="topo">
+        <div class="topo-conteudo">
+            <div>
+                <h1>Meus lembretes</h1>
+                <p>Anote, encontre e organize o que não pode ser esquecido.</p>
+            </div>
+            <div class="topo-acoes">
+                <button type="button" id="btnImprimir" class="btn btn-contorno-claro">Gerar PDF</button>
+                <button type="button" id="btnNovo" class="btn btn-destaque">Novo lembrete</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="pagina">
+        <div id="avisoErro" class="aviso-erro" role="alert" hidden>
+            <p id="avisoErroTexto"></p>
+            <button type="button" id="btnTentarNovamente" class="btn btn-contorno">Tentar novamente</button>
+        </div>
+
+        <!-- FILTROS -->
+        <section class="cartao" aria-labelledby="tituloFiltros">
+            <h2 id="tituloFiltros">Filtrar lembretes</h2>
+
+            <form id="formFiltro" class="filtros" novalidate>
+                <div class="campo campo-descricao">
+                    <label for="filtroDescricao">Descrição contém</label>
+                    <input type="search" id="filtroDescricao" placeholder="Digite parte do texto" autocomplete="off">
+                </div>
+
+                <fieldset class="grupo-datas">
+                    <legend>Data de cadastro</legend>
+                    <div class="campo">
+                        <label for="filtroCadInicial">De</label>
+                        <input type="date" id="filtroCadInicial">
+                    </div>
+                    <div class="campo">
+                        <label for="filtroCadFinal">Até</label>
+                        <input type="date" id="filtroCadFinal">
+                    </div>
+                </fieldset>
+
+                <fieldset class="grupo-datas">
+                    <legend>Data de atualização</legend>
+                    <div class="campo">
+                        <label for="filtroAtuInicial">De</label>
+                        <input type="date" id="filtroAtuInicial">
+                    </div>
+                    <div class="campo">
+                        <label for="filtroAtuFinal">Até</label>
+                        <input type="date" id="filtroAtuFinal">
+                    </div>
+                </fieldset>
+
+                <div class="campo campo-tamanho">
+                    <label for="tamanhoPagina">Registros por página</label>
+                    <select id="tamanhoPagina">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+
+                <div class="filtros-acoes">
+                    <button type="button" id="btnLimpar" class="btn btn-contorno">Limpar filtros</button>
+                    <button type="submit" class="btn btn-primario">Filtrar</button>
+                </div>
+
+                <p id="erroFiltro" class="erro-campo erro-filtro" role="alert" hidden></p>
+            </form>
+        </section>
+
+        <!-- LISTAGEM -->
+        <section class="cartao" aria-labelledby="tituloLista">
+            <div class="lista-topo">
+                <h2 id="tituloLista">Lembretes</h2>
+                <span id="totalRegistros" class="total" aria-live="polite">0 registros</span>
+            </div>
+
+            <!-- Ordenação para telas pequenas (o cabeçalho da tabela fica oculto) -->
+            <div class="ordenar-mobile">
+                <label for="ordemMobile">Ordenar por</label>
+                <select id="ordemMobile">
+                    <option value="DataCadastro">Data de cadastro</option>
+                    <option value="DataAtualizacao">Data de atualização</option>
+                    <option value="Descricao">Descrição</option>
+                </select>
+                <button type="button" id="direcaoMobile" class="btn btn-contorno" aria-label="Inverter a direção da ordenação">Mais recentes primeiro</button>
+            </div>
+
+            <div class="tabela-area" id="tabelaArea" aria-busy="false">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col" aria-sort="none"><button type="button" class="ordenar" data-ordem="Descricao">Descrição<span class="seta" aria-hidden="true"></span></button></th>
+                            <th scope="col" aria-sort="none"><button type="button" class="ordenar" data-ordem="DataCadastro">Cadastro<span class="seta" aria-hidden="true"></span></button></th>
+                            <th scope="col" aria-sort="none"><button type="button" class="ordenar" data-ordem="DataAtualizacao">Atualização<span class="seta" aria-hidden="true"></span></button></th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="col-acoes">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaLembretes"></tbody>
+                </table>
+
+                <div id="estadoVazio" class="estado-vazio" hidden>
+                    <p id="estadoVazioTexto"></p>
+                    <button type="button" id="btnVazioAcao" class="btn btn-primario"></button>
+                </div>
+            </div>
+
+            <nav class="paginacao" aria-label="Paginação">
+                <p id="infoPagina" class="info-pagina"></p>
+                <div class="paginacao-botoes" id="paginacaoBotoes"></div>
+            </nav>
+        </section>
+    </main>
+
+    <!-- FORMULÁRIO (criar / editar) -->
+    <dialog id="dlgLembrete" aria-labelledby="tituloFormulario">
+        <form id="formLembrete" novalidate>
+            <h2 id="tituloFormulario">Novo lembrete</h2>
+            <input type="hidden" id="lembreteId">
+
+            <div class="campo">
+                <label for="descricao">Descrição</label>
+                <textarea id="descricao" rows="4" maxlength="500" placeholder="O que você precisa lembrar?" aria-describedby="erroDescricao contadorDescricao"></textarea>
+                <div class="campo-rodape">
+                    <p id="erroDescricao" class="erro-campo" role="alert" hidden></p>
+                    <span id="contadorDescricao" class="contador">0/500</span>
+                </div>
+            </div>
+
+            <div class="dialogo-acoes">
+                <button type="button" id="btnCancelar" class="btn btn-contorno">Cancelar</button>
+                <button type="submit" id="btnSalvar" class="btn btn-primario">Salvar lembrete</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- CONFIRMAÇÃO DE EXCLUSÃO -->
+    <dialog id="dlgExcluir" aria-labelledby="tituloExcluir">
+        <h2 id="tituloExcluir">Excluir lembrete?</h2>
+        <p id="textoExcluir" class="texto-exclusao"></p>
+        <div class="dialogo-acoes">
+            <button type="button" id="btnCancelarExcluir" class="btn btn-contorno">Manter lembrete</button>
+            <button type="button" id="btnConfirmarExcluir" class="btn btn-perigo">Excluir lembrete</button>
+        </div>
+    </dialog>
+
+    <div id="toasts" class="toasts" aria-live="polite"></div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
